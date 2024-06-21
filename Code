@@ -1,0 +1,58 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+#define turbidity_sensor_pin A1
+#define water_level_sensor_pin A0
+#define buzzer_pin 8  // Adjust the pin number as per your connection
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+int turbidity_ntu;
+int water_level;
+
+void setup() {
+  Serial.begin(9600);
+  lcd.init();
+  lcd.backlight();
+
+  lcd.begin(16, 2);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("   Welcome To   ");
+  lcd.setCursor(0, 1);
+  lcd.print("Turbidity Sensor");
+  delay(2000);
+  lcd.clear();
+  
+  pinMode(buzzer_pin, OUTPUT);
+}
+
+void loop() {
+  // Reading Turbidity
+  int turbidity_read_ADC = analogRead(turbidity_sensor_pin);
+  if (turbidity_read_ADC > 208) turbidity_read_ADC = 208;
+  turbidity_ntu = map(turbidity_read_ADC, 0, 208, 300, 0);
+
+  lcd.setCursor(0, 0);
+  lcd.print("Turbidity: ");
+  lcd.print(turbidity_ntu);
+  lcd.print("  ");
+
+  // Reading Water Level
+  water_level = analogRead(water_level_sensor_pin);
+
+  lcd.setCursor(0, 1);
+  lcd.print("Water Level :");
+  lcd.print(water_level);
+  lcd.print("   ");
+
+  // Check if water level is below a certain threshold
+  if (water_level < 200) { // Adjust the threshold as per your requirement
+    // Activate the buzzer
+    tone(buzzer_pin, 1000); // Set a higher frequency for louder sound
+    delay(2000); // Keep the buzzer activated for 3 seconds
+    noTone(buzzer_pin); // Turn off the buzzer after 3 seconds
+  }
+
+  delay(60000);
+}
